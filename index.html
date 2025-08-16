@@ -1,0 +1,1754 @@
+```zip
+/public/manifest.json
+{
+  "short_name": "{{BRAND_NAME}}",
+  "name": "{{BRAND_NAME}} - Fast, secure, privacy-first online tools.",
+  "icons": [
+    {
+      "src": "/public/icons/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/public/icons/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ],
+  "start_url": "/",
+  "display": "standalone",
+  "theme_color": "#ffffff",
+  "background_color": "#ffffff"
+}
+
+/robots.txt
+User-agent: *
+Allow: /
+
+Sitemap: {{DOMAIN}}/sitemap.xml
+
+/sitemap.xml
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>{{DOMAIN}}/</loc>
+    <lastmod>2025-08-16</lastmod>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>{{DOMAIN}}/tools/image-compressor.html</loc>
+    <lastmod>2025-08-16</lastmod>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>{{DOMAIN}}/tools/image-resizer.html</loc>
+    <lastmod>2025-08-16</lastmod>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>{{DOMAIN}}/tools/image-converter.html</loc>
+    <lastmod>2025-08-16</lastmod>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>{{DOMAIN}}/tools/image-cropper.html</loc>
+    <lastmod>2025-08-16</lastmod>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>{{DOMAIN}}/tools/pdf-merger.html</loc>
+    <lastmod>2025-08-16</lastmod>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>{{DOMAIN}}/tools/pdf-splitter.html</loc>
+    <lastmod>2025-08-16</lastmod>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>{{DOMAIN}}/tools/image-to-pdf.html</loc>
+    <lastmod>2025-08-16</lastmod>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>{{DOMAIN}}/tools/metadata-remover.html</loc>
+    <lastmod>2025-08-16</lastmod>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>{{DOMAIN}}/privacy.html</loc>
+    <lastmod>2025-08-16</lastmod>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>{{DOMAIN}}/terms.html</loc>
+    <lastmod>2025-08-16</lastmod>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>{{DOMAIN}}/about.html</loc>
+    <lastmod>2025-08-16</lastmod>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>{{DOMAIN}}/contact.html</loc>
+    <lastmod>2025-08-16</lastmod>
+    <priority>0.6</priority>
+  </url>
+</urlset>
+
+/sw.js
+const CACHE_NAME = 'shell-v1';
+const urlsToCache = [
+  '/',
+  '/index.html',
+  '/styles/global.css',
+  '/scripts/utils.js',
+  '/scripts/jszip.min.js',
+  '/scripts/pdf-lib.min.js',
+  '/scripts/piexif.min.js',
+  '/scripts/workers/compress-worker.js',
+  '/tools/image-compressor.html',
+  '/tools/image-resizer.html',
+  '/tools/image-converter.html',
+  '/tools/canvascropper.js',
+  '/tools/pdf-merger.html',
+  '/tools/pdf-splitter.html',
+  '/tools/image-to-pdf.html',
+  '/tools/metadata-remover.html',
+  '/privacy.html',
+  '/terms.html',
+  '/about.html',
+  '/contact.html'
+];
+
+self.addEventListener('install', (event) => {
+  event.waitUntil(
+    caches.open(CACHE_NAME)
+      .then((cache) => {
+        return cache.addAll(urlsToCache);
+      })
+  );
+});
+
+self.addEventListener('fetch', (event) => {
+  event.respondWith(
+    caches.match(event.request)
+      .then((response) => {
+        return response || fetch(event.request);
+      })
+  );
+});
+
+/styles/global.css
+:root {
+  --bg-color: #ffffff;
+  --text-color: #000000;
+  --accent-color: #007bff;
+  --card-bg: rgba(255, 255, 255, 0.8);
+  --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  --radius: 1rem;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg-color: #121212;
+    --text-color: #ffffff;
+    --card-bg: rgba(18, 18, 18, 0.8);
+    --shadow: 0 4px 6px rgba(255, 255, 255, 0.1);
+  }
+}
+
+body.dark {
+  --bg-color: #121212;
+  --text-color: #ffffff;
+  --card-bg: rgba(18, 18, 18, 0.8);
+  --shadow: 0 4px 6px rgba(255, 255, 255, 0.1);
+}
+
+body {
+  background: var(--bg-color);
+  color: var(--text-color);
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  line-height: 1.6;
+}
+
+header, footer {
+  background: var(--card-bg);
+  padding: 1rem;
+  box-shadow: var(--shadow);
+}
+
+nav ul {
+  list-style: none;
+  display: flex;
+  gap: 1rem;
+}
+
+@media (max-width: 768px) {
+  nav ul {
+    flex-direction: column;
+    display: none;
+  }
+  nav ul.active {
+    display: flex;
+  }
+}
+
+.card {
+  background: var(--card-bg);
+  border-radius: var(--radius);
+  padding: 1rem;
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(10px);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1rem;
+}
+
+.drop-zone {
+  border: 2px dashed var(--accent-color);
+  padding: 2rem;
+  text-align: center;
+  cursor: pointer;
+}
+
+.ad-container {
+  min-height: 90px; /* CLS-safe */
+  margin: 1rem 0;
+}
+
+/* More styles for buttons, sliders, etc. */
+button {
+  background: var(--accent-color);
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius);
+  cursor: pointer;
+}
+
+input[type="range"] {
+  width: 100%;
+}
+
+.faq details {
+  margin-bottom: 1rem;
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+input, select, textarea {
+  width: 100%;
+  padding: 0.5rem;
+  border-radius: var(--radius);
+  border: 1px solid #ccc;
+}
+
+button:focus, input:focus, select:focus, textarea:focus {
+  outline: 2px solid var(--accent-color);
+}
+
+.drop-zone:focus {
+  outline: 2px solid var(--accent-color);
+}
+
+/scripts/utils.js
+// Shared utils for image processing
+
+function loadImage(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => resolve(img);
+      img.onerror = reject;
+      img.src = e.target.result;
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+function resizeImage(img, maxWidth, maxHeight, maintainAspect = true) {
+  let width = img.width;
+  let height = img.height;
+  if (maintainAspect) {
+    if (width > maxWidth) {
+      height *= maxWidth / width;
+      width = maxWidth;
+    }
+    if (height > maxHeight) {
+      width *= maxHeight / height;
+      height = maxHeight;
+    }
+  } else {
+    width = maxWidth || width;
+    height = maxHeight || height;
+  }
+  const canvas = document.createElement('canvas');
+  canvas.width = width;
+  canvas.height = height;
+  const ctx = canvas.getContext('2d');
+  ctx.drawImage(img, 0, 0, width, height);
+  return canvas;
+}
+
+function compressImage(canvas, quality, format) {
+  return new Promise((resolve) => {
+    canvas.toBlob(resolve, `image/${format}`, quality / 100);
+  });
+}
+
+// EXIF handling with piexif
+function getExif(blob) {
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const exif = piexif.load(e.target.result);
+        resolve(exif);
+      } catch (e) {
+        resolve(null);
+      }
+    };
+    reader.readAsDataURL(blob);
+  });
+}
+
+function insertExif(blob, exif) {
+  if (!exif) return blob;
+  try {
+    const exifStr = piexif.dump(exif);
+    const inserted = piexif.insert(exifStr, blob);
+    return new Blob([inserted], {type: 'image/jpeg'});
+  } catch (e) {
+    return blob;
+  }
+}
+
+// ZIP download
+async function downloadAsZip(files, name = 'compressed.zip') {
+  const zip = new JSZip();
+  files.forEach((file, index) => {
+    zip.file(file.name || `file${index}.${file.type.split('/')[1]}`, file);
+  });
+  const content = await zip.generateAsync({type: 'blob'});
+  const url = URL.createObjectURL(content);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = name;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+// Theme toggle
+function toggleTheme() {
+  document.body.classList.toggle('dark');
+  localStorage.setItem('theme', document.body.classList.contains('dark') ? 'dark' : 'light');
+}
+
+// Init theme
+const savedTheme = localStorage.getItem('theme');
+if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+  document.body.classList.add('dark');
+}
+
+// Register SW
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').catch((err) => console.error('SW registration failed:', err));
+  });
+}
+
+// Mobile menu
+function setupMobileMenu() {
+  const hamburger = document.querySelector('.hamburger');
+  const navUl = document.querySelector('nav ul');
+  if (hamburger && navUl) {
+    hamburger.addEventListener('click', () => {
+      navUl.classList.toggle('active');
+    });
+  }
+}
+
+/scripts/workers/compress-worker.js
+self.onmessage = async (e) => {
+  const { imgData, quality, format, maxWidth, maxHeight, keepExif, fileType } = e.data;
+  try {
+    const img = await createImageBitmap(new Blob([imgData], {type: fileType}));
+    let width = img.width;
+    let height = img.height;
+    if (maxWidth && width > maxWidth) {
+      height *= maxWidth / width;
+      width = maxWidth;
+    }
+    if (maxHeight && height > maxHeight) {
+      width *= maxHeight / height;
+      height = maxHeight;
+    }
+    const offscreen = new OffscreenCanvas(width, height);
+    const ctx = offscreen.getContext('2d');
+    ctx.drawImage(img, 0, 0, width, height);
+    const blob = await offscreen.convertToBlob({type: `image/${format}`, quality: quality / 100});
+    self.postMessage({ blob, error: null });
+  } catch (err) {
+    self.postMessage({ blob: null, error: err.message });
+  }
+};
+
+/scripts/workers/resize-worker.js
+self.onmessage = async (e) => {
+  const { imgData, width, height, maintainAspect, fileType } = e.data;
+  try {
+    const img = await createImageBitmap(new Blob([imgData], {type: fileType}));
+    let newWidth = width || img.width;
+    let newHeight = height || img.height;
+    if (maintainAspect) {
+      if (newWidth && newWidth < img.width) {
+        newHeight = img.height * (newWidth / img.width);
+      } else if (newHeight && newHeight < img.height) {
+        newWidth = img.width * (newHeight / img.height);
+      }
+    }
+    const offscreen = new OffscreenCanvas(newWidth, newHeight);
+    const ctx = offscreen.getContext('2d');
+    ctx.drawImage(img, 0, 0, newWidth, newHeight);
+    const blob = await offscreen.convertToBlob({type: fileType, quality: 1});
+    self.postMessage({ blob, error: null });
+  } catch (err) {
+    self.postMessage({ blob: null, error: err.message });
+  }
+};
+
+/index.html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="{{BRAND_NAME}} - Fast, secure, privacy-first online tools for image compression and more.">
+  <title>{{BRAND_NAME}} - Online Tools</title>
+  <link rel="canonical" href="{{DOMAIN}}/">
+  <meta property="og:title" content="{{BRAND_NAME}} - Online Tools">
+  <meta property="og:description" content="Fast, secure, privacy-first online tools.">
+  <meta property="og:url" content="{{DOMAIN}}/">
+  <meta property="og:image" content="{{DOMAIN}}/public/icons/icon-512x512.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://pagead2.googlesyndication.com https://www.googletagmanager.com; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' https://www.google-analytics.com;">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+  <meta name="robots" content="index, follow">
+  <link rel="stylesheet" href="/styles/global.css">
+  <link rel="manifest" href="/public/manifest.json">
+  <link rel="icon" href="/public/favicon.ico">
+  <link rel="apple-touch-icon" href="/public/icons/apple-touch-icon.png">
+  <script async src="https://www.googletagmanager.com/gtag/js?id={{GA_MEASUREMENT_ID}}"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', '{{GA_MEASUREMENT_ID}}');
+  </script>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client={{ADSENSE_CLIENT_ID}}" crossorigin="anonymous"></script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "name": "{{BRAND_NAME}}",
+    "url": "{{DOMAIN}}",
+    "potentialAction": {
+      "@type": "SearchAction",
+      "target": "{{DOMAIN}}/search?q={search_term_string}",
+      "query-input": "required name=search_term_string"
+    }
+  }
+  </script>
+</head>
+<body>
+  <header>
+    <nav>
+      <div class="logo">{{BRAND_NAME}}</div>
+      <ul>
+        <li><a href="/">Home</a></li>
+        <li><a href="/tools/image-compressor.html">Compressor</a></li>
+        <li><a href="/tools/image-resizer.html">Resizer</a></li>
+        <li><a href="/tools/image-converter.html">Converter</a></li>
+        <li><a href="/tools/image-cropper.html">Cropper</a></li>
+        <li><a href="/about.html">About</a></li>
+        <li><a href="/contact.html">Contact</a></li>
+      </ul>
+      <button onclick="toggleTheme()" aria-label="Toggle light/dark theme">Toggle Theme</button>
+      <button class="hamburger" aria-label="Menu">☰</button>
+    </nav>
+  </header>
+
+  <!-- Ad Slot: Header Responsive -->
+  <div class="ad-container">
+    <ins class="adsbygoogle"
+         style="display:block"
+         data-ad-client="{{ADSENSE_CLIENT_ID}}"
+         data-ad-slot="{{AD_SLOT_ID}}"
+         data-ad-format="auto"
+         data-full-width-responsive="true"></ins>
+    <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+  </div>
+
+  <main>
+    <section class="hero">
+      <h1>{{BRAND_NAME}}</h1>
+      <p>Fast, secure, privacy-first online tools.</p>
+      <button onclick="location.href='/tools/image-compressor.html'">Compress Image</button>
+      <button onclick="location.href='#tools'">Explore Tools</button>
+      <p>Files stay on your device. No sign-up.</p>
+    </section>
+
+    <input type="search" placeholder="Search tools..." aria-label="Search tools">
+
+    <section id="tools" class="grid">
+      <div class="card">
+        <h2>Image Compressor</h2>
+        <p>Compress images without losing quality.</p>
+        <a href="/tools/image-compressor.html">Launch</a>
+      </div>
+      <div class="card">
+        <h2>Image Resizer</h2>
+        <p>Resize images to custom dimensions.</p>
+        <a href="/tools/image-resizer.html">Launch</a>
+      </div>
+      <div class="card">
+        <h2>Format Converter</h2>
+        <p>Convert between PNG, JPG, WEBP.</p>
+        <a href="/tools/image-converter.html">Launch</a>
+      </div>
+      <div class="card">
+        <h2>Image Cropper</h2>
+        <p>Crop images with presets.</p>
+        <a href="/tools/image-cropper.html">Launch</a>
+      </div>
+      <div class="card">
+        <h2>PDF Merger</h2>
+        <p>Merge multiple PDFs.</p>
+        <a href="/tools/pdf-merger.html">Launch</a>
+      </div>
+      <div class="card">
+        <h2>PDF Splitter</h2>
+        <p>Split PDF into pages.</p>
+        <a href="/tools/pdf-splitter.html">Launch</a>
+      </div>
+      <div class="card">
+        <h2>Image to PDF</h2>
+        <p>Convert images to PDF.</p>
+        <a href="/tools/image-to-pdf.html">Launch</a>
+      </div>
+      <div class="card">
+        <h2>Metadata Remover</h2>
+        <p>Remove EXIF from images.</p>
+        <a href="/tools/metadata-remover.html">Launch</a>
+      </div>
+    </section>
+
+    <!-- Ad Slot: In-Content Responsive -->
+    <div class="ad-container">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="{{ADSENSE_CLIENT_ID}}"
+           data-ad-slot="{{AD_SLOT_ID}}"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    </div>
+
+    <section class="faq">
+      <h2>FAQ</h2>
+      <details>
+        <summary>How does compression work?</summary>
+        <p>Our tool uses browser-based canvas technology to compress images client-side, ensuring your files never leave your device.</p>
+      </details>
+      <details>
+        <summary>Is my data safe?</summary>
+        <p>Yes, all processing happens in your browser. No data is uploaded to our servers.</p>
+      </details>
+    </section>
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "How does compression work?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Our tool uses browser-based canvas technology to compress images client-side, ensuring your files never leave your device."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Is my data safe?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes, all processing happens in your browser. No data is uploaded to our servers."
+          }
+        }
+      ]
+    }
+    </script>
+  </main>
+
+  <footer>
+    <ul>
+      <li><a href="/about.html">About</a></li>
+      <li><a href="/privacy.html">Privacy</a></li>
+      <li><a href="/terms.html">Terms</a></li>
+      <li><a href="/contact.html">Contact</a></li>
+    </ul>
+    <p>&copy; 2025 {{BRAND_NAME}}. All rights reserved.</p>
+  </footer>
+
+  <!-- Ad Slot: Footer Responsive -->
+  <div class="ad-container">
+    <ins class="adsbygoogle"
+         style="display:block"
+         data-ad-client="{{ADSENSE_CLIENT_ID}}"
+         data-ad-slot="{{AD_SLOT_ID}}"
+         data-ad-format="auto"
+         data-full-width-responsive="true"></ins>
+    <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+  </div>
+
+  <script src="/scripts/utils.js"></script>
+  <script>
+    setupMobileMenu();
+  </script>
+</body>
+</html>
+
+/tools/image-compressor.html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Compress images online for free with {{BRAND_NAME}}. Reduce file size without losing quality.">
+  <title>Image Compressor - {{BRAND_NAME}}</title>
+  <link rel="canonical" href="{{DOMAIN}}/tools/image-compressor.html">
+  <meta property="og:title" content="Image Compressor - {{BRAND_NAME}}">
+  <meta property="og:description" content="Reduce image size client-side with {{BRAND_NAME}}. Supports JPG, PNG, WEBP.">
+  <meta property="og:url" content="{{DOMAIN}}/tools/image-compressor.html">
+  <meta property="og:image" content="{{DOMAIN}}/public/icons/icon-512x512.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://pagead2.googlesyndication.com https://www.googletagmanager.com; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' https://www.google-analytics.com;">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+  <meta name="robots" content="index, follow">
+  <link rel="stylesheet" href="/styles/global.css">
+  <link rel="manifest" href="/public/manifest.json">
+  <link rel="icon" href="/public/favicon.ico">
+  <script async src="https://www.googletagmanager.com/gtag/js?id={{GA_MEASUREMENT_ID}}"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', '{{GA_MEASUREMENT_ID}}');
+  </script>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client={{ADSENSE_CLIENT_ID}}" crossorigin="anonymous"></script>
+  <script src="/scripts/utils.js" defer></script>
+  <script src="/scripts/piexif.min.js" defer></script>
+  <script src="/scripts/jszip.min.js" defer></script>
+</head>
+<body>
+  <header>
+    <nav>
+      <div class="logo">{{BRAND_NAME}}</div>
+      <ul>
+        <li><a href="/">Home</a></li>
+        <li><a href="/tools/image-compressor.html">Compressor</a></li>
+        <li><a href="/tools/image-resizer.html">Resizer</a></li>
+        <li><a href="/tools/image-converter.html">Converter</a></li>
+        <li><a href="/tools/image-cropper.html">Cropper</a></li>
+        <li><a href="/about.html">About</a></li>
+        <li><a href="/contact.html">Contact</a></li>
+      </ul>
+      <button onclick="toggleTheme()" aria-label="Toggle light/dark theme">Toggle Theme</button>
+      <button class="hamburger" aria-label="Menu">☰</button>
+    </nav>
+  </header>
+
+  <!-- Ad Slot: Header Responsive -->
+  <div class="ad-container">
+    <ins class="adsbygoogle"
+         style="display:block"
+         data-ad-client="{{ADSENSE_CLIENT_ID}}"
+         data-ad-slot="{{AD_SLOT_ID}}"
+         data-ad-format="auto"
+         data-full-width-responsive="true"></ins>
+    <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+  </div>
+
+  <main>
+    <h1>Image Compressor</h1>
+    <p>Compress your images client-side. Files never leave your device.</p>
+
+    <div class="drop-zone" tabindex="0" aria-label="Drop files here">
+      Drag & drop images or click to select (JPG, PNG, WEBP)
+    </div>
+    <input type="file" multiple accept="image/jpeg,image/png,image/webp" style="display:none;" id="fileInput">
+
+    <section class="controls">
+      <label for="quality">Quality (0-100): <input type="range" id="quality" min="0" max="100" value="80" aria-label="Compression quality"></label>
+      <label for="targetSize">Target Size (KB): <input type="number" id="targetSize" min="1" aria-label="Target file size in KB"></label>
+      <label for="maxWidth">Max Width (px): <input type="number" id="maxWidth" min="1" aria-label="Maximum width"></label>
+      <label for="maxHeight">Max Height (px): <input type="number" id="maxHeight" min="1" aria-label="Maximum height"></label>
+      <label for="format">Output Format: 
+        <select id="format" aria-label="Output image format">
+          <option value="jpeg">JPG</option>
+          <option value="png">PNG</option>
+          <option value="webp">WEBP</option>
+        </select>
+      </label>
+      <label><input type="checkbox" id="keepExif"> Keep EXIF metadata</label>
+    </section>
+
+    <div id="previews" role="region" aria-live="polite"></div>
+    <div id="progress" aria-live="polite"></div>
+
+    <button id="compress">Compress</button>
+    <button id="downloadAll" disabled>Download All as ZIP</button>
+
+    <!-- Ad Slot: In-Content Responsive -->
+    <div class="ad-container">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="{{ADSENSE_CLIENT_ID}}"
+           data-ad-slot="{{AD_SLOT_ID}}"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    </div>
+
+    <section>
+      <h2>About Image Compression</h2>
+      <p>Our tool uses browser-based canvas to resize and compress images, ensuring your privacy by keeping all processing client-side.</p>
+    </section>
+
+    <section class="faq">
+      <h2>FAQ</h2>
+      <details>
+        <summary>Is it safe to compress images here?</summary>
+        <p>Yes, all processing is done in your browser. No files are uploaded to our servers.</p>
+      </details>
+      <details>
+        <summary>What formats are supported?</summary>
+        <p>We support JPG, PNG, and WEBP for compression.</p>
+      </details>
+    </section>
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "Is it safe to compress images here?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes, all processing is done in your browser. No files are uploaded to our servers."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "What formats are supported?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "We support JPG, PNG, and WEBP for compression."
+          }
+        }
+      ]
+    }
+    </script>
+  </main>
+
+  <footer>
+    <ul>
+      <li><a href="/about.html">About</a></li>
+      <li><a href="/privacy.html">Privacy</a></li>
+      <li><a href="/terms.html">Terms</a></li>
+      <li><a href="/contact.html">Contact</a></li>
+    </ul>
+    <p>&copy; 2025 {{BRAND_NAME}}. All rights reserved.</p>
+  </footer>
+
+  <script>
+    setupMobileMenu();
+    const files = [];
+    const processedBlobs = [];
+    const dropZone = document.querySelector('.drop-zone');
+    const fileInput = document.getElementById('fileInput');
+    const previews = document.getElementById('previews');
+    const progress = document.getElementById('progress');
+    const compressBtn = document.getElementById('compress');
+    const downloadAllBtn = document.getElementById('downloadAll');
+
+    dropZone.addEventListener('click', () => fileInput.click());
+    dropZone.addEventListener('dragover', (e) => e.preventDefault());
+    dropZone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      handleFiles(e.dataTransfer.files);
+    });
+    fileInput.addEventListener('change', (e) => handleFiles(e.target.files));
+
+    function handleFiles(newFiles) {
+      Array.from(newFiles).forEach((file) => {
+        if (!file.type.startsWith('image/')) return;
+        files.push(file);
+        const preview = document.createElement('div');
+        preview.className = 'preview';
+        const img = document.createElement('img');
+        img.src = URL.createObjectURL(file);
+        img.alt = `Preview of ${file.name}`;
+        img.loading = 'lazy';
+        const size = document.createElement('p');
+        size.textContent = `Original: ${(file.size / 1024).toFixed(2)} KB`;
+        preview.appendChild(img);
+        preview.appendChild(size);
+        previews.appendChild(preview);
+      });
+      compressBtn.disabled = files.length === 0;
+    }
+
+    compressBtn.addEventListener('click', async () => {
+      const quality = parseInt(document.getElementById('quality').value);
+      const targetSize = parseInt(document.getElementById('targetSize').value) * 1024 || Infinity;
+      const maxWidth = parseInt(document.getElementById('maxWidth').value) || Infinity;
+      const maxHeight = parseInt(document.getElementById('maxHeight').value) || Infinity;
+      const format = document.getElementById('format').value;
+      const keepExif = document.getElementById('keepExif').checked;
+
+      processedBlobs.length = 0;
+      const concurrency = 4;
+      let active = 0;
+
+      for (let i = 0; i < files.length; i++) {
+        while (active >= concurrency) await new Promise(r => setTimeout(r, 100));
+        active++;
+        processFile(files[i], quality, targetSize, maxWidth, maxHeight, format, keepExif, i).then((result) => {
+          processedBlobs.push(result);
+          active--;
+          if (processedBlobs.length === files.length) {
+            downloadAllBtn.disabled = false;
+          }
+        });
+      }
+    });
+
+    async function processFile(file, quality, targetSize, maxWidth, maxHeight, format, keepExif, index) {
+      try {
+        progress.textContent = `Processing ${index + 1}/${files.length}`;
+        const reader = new FileReader();
+        const data = await new Promise((res) => {
+          reader.onload = () => res(reader.result);
+          reader.readAsArrayBuffer(file);
+        });
+
+        const worker = new Worker('/scripts/workers/compress-worker.js');
+        worker.postMessage({ imgData: data, quality, format, maxWidth, maxHeight, keepExif, fileType: file.type });
+        let { blob, error } = await new Promise((res) => worker.onmessage = (e) => res(e.data));
+        if (error) throw new Error(error);
+
+        // Iterative for target size
+        let currentQuality = quality;
+        while (blob.size > targetSize && currentQuality > 0) {
+          currentQuality -= 10;
+          worker.postMessage({ imgData: data, quality: currentQuality, format, maxWidth, maxHeight, keepExif, fileType: file.type });
+          const result = await new Promise((res) => worker.onmessage = (e) => res(e.data));
+          if (result.error) throw new Error(result.error);
+          blob = result.blob;
+        }
+
+        if (keepExif && format === 'jpeg') {
+          const exif = await getExif(new Blob([data]));
+          blob = insertExif(blob, exif);
+        }
+
+        // Update preview
+        const preview = previews.children[index];
+        const img = preview.querySelector('img');
+        img.src = URL.createObjectURL(blob);
+        const size = preview.querySelector('p');
+        const reduction = ((file.size - blob.size) / file.size * 100).toFixed(2);
+        size.textContent += ` | Compressed: ${(blob.size / 1024).toFixed(2)} KB (${reduction}% saved)`;
+
+        // Auto-download
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = file.name.replace(/\.\w+$/, `-compressed.${format}`);
+        a.click();
+        URL.revokeObjectURL(a.href);
+
+        return { blob, name: file.name.replace(/\.\w+$/, `-compressed.${format}`) };
+      } catch (err) {
+        progress.textContent = `Error on file ${index + 1}: ${err.message}`;
+        return null;
+      }
+    }
+
+    downloadAllBtn.addEventListener('click', () => {
+      if (processedBlobs.length) {
+        downloadAsZip(processedBlobs);
+      }
+    });
+  </script>
+</body>
+</html>
+
+/tools/image-resizer.html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Resize images online with {{BRAND_NAME}}. Set custom dimensions or percentages.">
+  <title>Image Resizer - {{BRAND_NAME}}</title>
+  <link rel="canonical" href="{{DOMAIN}}/tools/image-resizer.html">
+  <meta property="og:title" content="Image Resizer - {{BRAND_NAME}}">
+  <meta property="og:description" content="Resize images client-side with custom dimensions or percentages.">
+  <meta property="og:url" content="{{DOMAIN}}/tools/image-resizer.html">
+  <meta property="og:image" content="{{DOMAIN}}/public/icons/icon-512x512.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://pagead2.googlesyndication.com https://www.googletagmanager.com; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' https://www.google-analytics.com;">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+  <meta name="robots" content="index, follow">
+  <link rel="stylesheet" href="/styles/global.css">
+  <link rel="manifest" href="/public/manifest.json">
+  <link rel="icon" href="/public/favicon.ico">
+  <script async src="https://www.googletagmanager.com/gtag/js?id={{GA_MEASUREMENT_ID}}"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', '{{GA_MEASUREMENT_ID}}');
+  </script>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client={{ADSENSE_CLIENT_ID}}" crossorigin="anonymous"></script>
+  <script src="/scripts/utils.js" defer></script>
+</head>
+<body>
+  <header>
+    <nav>
+      <div class="logo">{{BRAND_NAME}}</div>
+      <ul>
+        <li><a href="/">Home</a></li>
+        <li><a href="/tools/image-compressor.html">Compressor</a></li>
+        <li><a href="/tools/image-resizer.html">Resizer</a></li>
+        <li><a href="/tools/image-converter.html">Converter</a></li>
+        <li><a href="/tools/image-cropper.html">Cropper</a></li>
+        <li><a href="/about.html">About</a></li>
+        <li><a href="/contact.html">Contact</a></li>
+      </ul>
+      <button onclick="toggleTheme()" aria-label="Toggle light/dark theme">Toggle Theme</button>
+      <button class="hamburger" aria-label="Menu">☰</button>
+    </nav>
+  </header>
+
+  <!-- Ad Slot: Header Responsive -->
+  <div class="ad-container">
+    <ins class="adsbygoogle"
+         style="display:block"
+         data-ad-client="{{ADSENSE_CLIENT_ID}}"
+         data-ad-slot="{{AD_SLOT_ID}}"
+         data-ad-format="auto"
+         data-full-width-responsive="true"></ins>
+    <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+  </div>
+
+  <main>
+    <h1>Image Resizer</h1>
+    <p>Resize your images client-side to custom dimensions or percentages.</p>
+
+    <div class="drop-zone" tabindex="0" aria-label="Drop files here">
+      Drag & drop images or click to select (JPG, PNG, WEBP)
+    </div>
+    <input type="file" multiple accept="image/jpeg,image/png,image/webp" style="display:none;" id="fileInput">
+
+    <section class="controls">
+      <label for="width">Width (px): <input type="number" id="width" min="1" aria-label="Width in pixels"></label>
+      <label for="height">Height (px): <input type="number" id="height" min="1" aria-label="Height in pixels"></label>
+      <label for="percent">Scale (%): <input type="number" id="percent" min="1" max="1000" value="100" aria-label="Scale percentage"></label>
+      <label><input type="checkbox" id="aspect" checked> Maintain aspect ratio</label>
+    </section>
+
+    <div id="previews" role="region" aria-live="polite"></div>
+    <div id="progress" aria-live="polite"></div>
+
+    <button id="resize">Resize</button>
+    <button id="downloadAll" disabled>Download All as ZIP</button>
+
+    <!-- Ad Slot: In-Content Responsive -->
+    <div class="ad-container">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="{{ADSENSE_CLIENT_ID}}"
+           data-ad-slot="{{AD_SLOT_ID}}"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    </div>
+
+    <section>
+      <h2>About Image Resizing</h2>
+      <p>Resize images to your desired dimensions while maintaining quality, all in your browser.</p>
+    </section>
+
+    <section class="faq">
+      <h2>FAQ</h2>
+      <details>
+        <summary>Does resizing affect quality?</summary>
+        <p>Our tool uses high-quality canvas resizing to preserve image clarity.</p>
+      </details>
+    </section>
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": [{
+        "@type": "Question",
+        "name": "Does resizing affect quality?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Our tool uses high-quality canvas resizing to preserve image clarity."
+        }
+      }]
+    }
+    </script>
+  </main>
+
+  <footer>
+    <ul>
+      <li><a href="/about.html">About</a></li>
+      <li><a href="/privacy.html">Privacy</a></li>
+      <li><a href="/terms.html">Terms</a></li>
+      <li><a href="/contact.html">Contact</a></li>
+    </ul>
+    <p>&copy; 2025 {{BRAND_NAME}}. All rights reserved.</p>
+  </footer>
+
+  <script>
+    setupMobileMenu();
+    const files = [];
+    const processedBlobs = [];
+    const dropZone = document.querySelector('.drop-zone');
+    const fileInput = document.getElementById('fileInput');
+    const previews = document.getElementById('previews');
+    const progress = document.getElementById('progress');
+    const resizeBtn = document.getElementById('resize');
+    const downloadAllBtn = document.getElementById('downloadAll');
+
+    dropZone.addEventListener('click', () => fileInput.click());
+    dropZone.addEventListener('dragover', (e) => e.preventDefault());
+    dropZone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      handleFiles(e.dataTransfer.files);
+    });
+    fileInput.addEventListener('change', (e) => handleFiles(e.target.files));
+
+    function handleFiles(newFiles) {
+      Array.from(newFiles).forEach((file) => {
+        if (!file.type.startsWith('image/')) return;
+        files.push(file);
+        const preview = document.createElement('div');
+        preview.className = 'preview';
+        const img = document.createElement('img');
+        img.src = URL.createObjectURL(file);
+        img.alt = `Preview of ${file.name}`;
+        img.loading = 'lazy';
+        const size = document.createElement('p');
+        size.textContent = `Original: ${(file.size / 1024).toFixed(2)} KB`;
+        preview.appendChild(img);
+        preview.appendChild(size);
+        previews.appendChild(preview);
+      });
+      resizeBtn.disabled = files.length === 0;
+    }
+
+    resizeBtn.addEventListener('click', async () => {
+      const width = parseInt(document.getElementById('width').value) || null;
+      const height = parseInt(document.getElementById('height').value) || null;
+      const percent = parseFloat(document.getElementById('percent').value) / 100;
+      const maintainAspect = document.getElementById('aspect').checked;
+
+      processedBlobs.length = 0;
+      const concurrency = 4;
+      let active = 0;
+
+      for (let i = 0; i < files.length; i++) {
+        while (active >= concurrency) await new Promise(r => setTimeout(r, 100));
+        active++;
+        processFile(files[i], width, height, percent, maintainAspect, i).then((result) => {
+          processedBlobs.push(result);
+          active--;
+          if (processedBlobs.length === files.length) {
+            downloadAllBtn.disabled = false;
+          }
+        });
+      }
+    });
+
+    async function processFile(file, width, height, percent, maintainAspect, index) {
+      try {
+        progress.textContent = `Processing ${index + 1}/${files.length}`;
+        const reader = new FileReader();
+        const data = await new Promise((res) => {
+          reader.onload = () => res(reader.result);
+          reader.readAsArrayBuffer(file);
+        });
+
+        const worker = new Worker('/scripts/workers/resize-worker.js');
+        worker.postMessage({ imgData: data, width: width ? width * percent : null, height: height ? height * percent : null, maintainAspect, fileType: file.type });
+        const { blob, error } = await new Promise((res) => worker.onmessage = (e) => res(e.data));
+        if (error) throw new Error(error);
+
+        // Update preview
+        const preview = previews.children[index];
+        const img = preview.querySelector('img');
+        img.src = URL.createObjectURL(blob);
+        const size = preview.querySelector('p');
+        const reduction = ((file.size - blob.size) / file.size * 100).toFixed(2);
+        size.textContent += ` | Resized: ${(blob.size / 1024).toFixed(2)} KB (${reduction}% change)`;
+
+        // Auto-download
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = file.name.replace(/\.\w+$/, `-resized.${file.type.split('/')[1]}`);
+        a.click();
+        URL.revokeObjectURL(a.href);
+
+        return { blob, name: file.name.replace(/\.\w+$/, `-resized.${file.type.split('/')[1]}`) };
+      } catch (err) {
+        progress.textContent = `Error on file ${index + 1}: ${err.message}`;
+        return null;
+      }
+    }
+
+    downloadAllBtn.addEventListener('click', () => {
+      if (processedBlobs.length) {
+        downloadAsZip(processedBlobs);
+      }
+    });
+  </script>
+</body>
+</html>
+
+/tools/image-converter.html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Convert images between JPG, PNG, WEBP with {{BRAND_NAME}}.">
+  <title>Image Converter - {{BRAND_NAME}}</title>
+  <link rel="canonical" href="{{DOMAIN}}/tools/image-converter.html">
+  <meta property="og:title" content="Image Converter - {{BRAND_NAME}}">
+  <meta property="og:description" content="Convert images client-side between JPG, PNG, WEBP.">
+  <meta property="og:url" content="{{DOMAIN}}/tools/image-converter.html">
+  <meta property="og:image" content="{{DOMAIN}}/public/icons/icon-512x512.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://pagead2.googlesyndication.com https://www.googletagmanager.com; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' https://www.google-analytics.com;">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+  <meta name="robots" content="index, follow">
+  <link rel="stylesheet" href="/styles/global.css">
+  <link rel="manifest" href="/public/manifest.json">
+  <link rel="icon" href="/public/favicon.ico">
+  <script async src="https://www.googletagmanager.com/gtag/js?id={{GA_MEASUREMENT_ID}}"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', '{{GA_MEASUREMENT_ID}}');
+  </script>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client={{ADSENSE_CLIENT_ID}}" crossorigin="anonymous"></script>
+  <script src="/scripts/utils.js" defer></script>
+</head>
+<body>
+  <header>
+    <nav>
+      <div class="logo">{{BRAND_NAME}}</div>
+      <ul>
+        <li><a href="/">Home</a></li>
+        <li><a href="/tools/image-compressor.html">Compressor</a></li>
+        <li><a href="/tools/image-resizer.html">Resizer</a></li>
+        <li><a href="/tools/image-converter.html">Converter</a></li>
+        <li><a href="/tools/image-cropper.html">Cropper</a></li>
+        <li><a href="/about.html">About</a></li>
+        <li><a href="/contact.html">Contact</a></li>
+      </ul>
+      <button onclick="toggleTheme()" aria-label="Toggle light/dark theme">Toggle Theme</button>
+      <button class="hamburger" aria-label="Menu">☰</button>
+    </nav>
+  </header>
+
+  <!-- Ad Slot: Header Responsive -->
+  <div class="ad-container">
+    <ins class="adsbygoogle"
+         style="display:block"
+         data-ad-client="{{ADSENSE_CLIENT_ID}}"
+         data-ad-slot="{{AD_SLOT_ID}}"
+         data-ad-format="auto"
+         data-full-width-responsive="true"></ins>
+    <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+  </div>
+
+  <main>
+    <h1>Image Converter</h1>
+    <p>Convert images client-side between JPG, PNG, and WEBP formats.</p>
+
+    <div class="drop-zone" tabindex="0" aria-label="Drop files here">
+      Drag & drop images or click to select (JPG, PNG, WEBP)
+    </div>
+    <input type="file" multiple accept="image/jpeg,image/png,image/webp" style="display:none;" id="fileInput">
+
+    <section class="controls">
+      <label for="format">Output Format: 
+        <select id="format" aria-label="Output image format">
+          <option value="jpeg">JPG</option>
+          <option value="png">PNG</option>
+          <option value="webp">WEBP</option>
+        </select>
+      </label>
+    </section>
+
+    <div id="previews" role="region" aria-live="polite"></div>
+    <div id="progress" aria-live="polite"></div>
+
+    <button id="convert">Convert</button>
+    <button id="downloadAll" disabled>Download All as ZIP</button>
+
+    <!-- Ad Slot: In-Content Responsive -->
+    <div class="ad-container">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="{{ADSENSE_CLIENT_ID}}"
+           data-ad-slot="{{AD_SLOT_ID}}"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    </div>
+
+    <section>
+      <h2>About Image Conversion</h2>
+      <p>Convert images to different formats using browser-based processing, keeping your files private.</p>
+    </section>
+
+    <section class="faq">
+      <h2>FAQ</h2>
+      <details>
+        <summary>Can I convert multiple images?</summary>
+        <p>Yes, you can upload multiple images and convert them to your desired format.</p>
+      </details>
+    </section>
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": [{
+        "@type": "Question",
+        "name": "Can I convert multiple images?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Yes, you can upload multiple images and convert them to your desired format."
+        }
+      }]
+    }
+    </script>
+  </main>
+
+  <footer>
+    <ul>
+      <li><a href="/about.html">About</a></li>
+      <li><a href="/privacy.html">Privacy</a></li>
+      <li><a href="/terms.html">Terms</a></li>
+      <li><a href="/contact.html">Contact</a></li>
+    </ul>
+    <p>&copy; 2025 {{BRAND_NAME}}. All rights reserved.</p>
+  </footer>
+
+  <script>
+    setupMobileMenu();
+    const files = [];
+    const processedBlobs = [];
+    const dropZone = document.querySelector('.drop-zone');
+    const fileInput = document.getElementById('fileInput');
+    const previews = document.getElementById('previews');
+    const progress = document.getElementById('progress');
+    const convertBtn = document.getElementById('convert');
+    const downloadAllBtn = document.getElementById('downloadAll');
+
+    dropZone.addEventListener('click', () => fileInput.click());
+    dropZone.addEventListener('dragover', (e) => e.preventDefault());
+    dropZone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      handleFiles(e.dataTransfer.files);
+    });
+    fileInput.addEventListener('change', (e) => handleFiles(e.target.files));
+
+    function handleFiles(newFiles) {
+      Array.from(newFiles).forEach((file) => {
+        if (!file.type.startsWith('image/')) return;
+        files.push(file);
+        const preview = document.createElement('div');
+        preview.className = 'preview';
+        const img = document.createElement('img');
+        img.src = URL.createObjectURL(file);
+        img.alt = `Preview of ${file.name}`;
+        img.loading = 'lazy';
+        const size = document.createElement('p');
+        size.textContent = `Original: ${(file.size / 1024).toFixed(2)} KB`;
+        preview.appendChild(img);
+        preview.appendChild(size);
+        previews.appendChild(preview);
+      });
+      convertBtn.disabled = files.length === 0;
+    }
+
+    convertBtn.addEventListener('click', async () => {
+      const format = document.getElementById('format').value;
+      processedBlobs.length = 0;
+      const concurrency = 4;
+      let active = 0;
+
+      for (let i = 0; i < files.length; i++) {
+        while (active >= concurrency) await new Promise(r => setTimeout(r, 100));
+        active++;
+        processFile(files[i], format, i).then((result) => {
+          processedBlobs.push(result);
+          active--;
+          if (processedBlobs.length === files.length) {
+            downloadAllBtn.disabled = false;
+          }
+        });
+      }
+    });
+
+    async function processFile(file, format, index) {
+      try {
+        progress.textContent = `Processing ${index + 1}/${files.length}`;
+        const img = await loadImage(file);
+        const canvas = document.createElement('canvas');
+        canvas.width = img.width;
+        canvas.height = img.height;
+        canvas.getContext('2d').drawImage(img, 0, 0);
+        const blob = await canvas.toBlob((b) => b, `image/${format}`, 1);
+
+        // Update preview
+        const preview = previews.children[index];
+        const imgEl = preview.querySelector('img');
+        imgEl.src = URL.createObjectURL(blob);
+        const size = preview.querySelector('p');
+        const reduction = ((file.size - blob.size) / file.size * 100).toFixed(2);
+        size.textContent += ` | Converted: ${(blob.size / 1024).toFixed(2)} KB (${reduction}% change)`;
+
+        // Auto-download
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = file.name.replace(/\.\w+$/, `.${format}`);
+        a.click();
+        URL.revokeObjectURL(a.href);
+
+        return { blob, name: file.name.replace(/\.\w+$/, `.${format}`) };
+      } catch (err) {
+        progress.textContent = `Error on file ${index + 1}: ${err.message}`;
+        return null;
+      }
+    }
+
+    downloadAllBtn.addEventListener('click', () => {
+      if (processedBlobs.length) {
+        downloadAsZip(processedBlobs);
+      }
+    });
+  </script>
+</body>
+</html>
+
+/tools/image-cropper.html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Crop images online with {{BRAND_NAME}}. Freeform or preset aspect ratios.">
+  <title>Image Cropper - {{BRAND_NAME}}</title>
+  <link rel="canonical" href="{{DOMAIN}}/tools/image-cropper.html">
+  <meta property="og:title" content="Image Cropper - {{BRAND_NAME}}">
+  <meta property="og:description" content="Crop images client-side with freeform or preset ratios.">
+  <meta property="og:url" content="{{DOMAIN}}/tools/image-cropper.html">
+  <meta property="og:image" content="{{DOMAIN}}/public/icons/icon-512x512.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://pagead2.googlesyndication.com https://www.googletagmanager.com; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' https://www.google-analytics.com;">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+  <meta name="robots" content="index, follow">
+  <link rel="stylesheet" href="/styles/global.css">
+  <link rel="manifest" href="/public/manifest.json">
+  <link rel="icon" href="/public/favicon.ico">
+  <script async src="https://www.googletagmanager.com/gtag/js?id={{GA_MEASUREMENT_ID}}"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', '{{GA_MEASUREMENT_ID}}');
+  </script>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client={{ADSENSE_CLIENT_ID}}" crossorigin="anonymous"></script>
+  <script src="/scripts/utils.js" defer></script>
+</head>
+<body>
+  <header>
+    <nav>
+      <div class="logo">{{BRAND_NAME}}</div>
+      <ul>
+        <li><a href="/">Home</a></li>
+        <li><a href="/tools/image-compressor.html">Compressor</a></li>
+        <li><a href="/tools/image-resizer.html">Resizer</a></li>
+        <li><a href="/tools/image-converter.html">Converter</a></li>
+        <li><a href="/tools/image-cropper.html">Cropper</a></li>
+        <li><a href="/about.html">About</a></li>
+        <li><a href="/contact.html">Contact</a></li>
+      </ul>
+      <button onclick="toggleTheme()" aria-label="Toggle light/dark theme">Toggle Theme</button>
+      <button class="hamburger" aria-label="Menu">☰</button>
+    </nav>
+  </header>
+
+  <!-- Ad Slot: Header Responsive -->
+  <div class="ad-container">
+    <ins class="adsbygoogle"
+         style="display:block"
+         data-ad-client="{{ADSENSE_CLIENT_ID}}"
+         data-ad-slot="{{AD_SLOT_ID}}"
+         data-ad-format="auto"
+         data-full-width-responsive="true"></ins>
+    <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+  </div>
+
+  <main>
+    <h1>Image Cropper</h1>
+    <p>Crop images client-side with freeform or preset aspect ratios.</p>
+
+    <div class="drop-zone" tabindex="0" aria-label="Drop files here">
+      Drag & drop image or click to select (JPG, PNG, WEBP)
+    </div>
+    <input type="file" accept="image/jpeg,image/png,image/webp" style="display:none;" id="fileInput">
+
+    <canvas id="crop-canvas" style="max-width:100%; border:1px solid var(--accent-color);"></canvas>
+
+    <section class="controls">
+      <label for="aspect">Aspect Ratio: 
+        <select id="aspect" aria-label="Aspect ratio">
+          <option value="free">Freeform</option>
+          <option value="1:1">1:1</option>
+          <option value="4:3">4:3</option>
+          <option value="16:9">16:9</option>
+        </select>
+      </label>
+    </section>
+
+    <div id="previews" role="region" aria-live="polite"></div>
+    <div id="progress" aria-live="polite"></div>
+
+    <button id="crop" disabled>Crop</button>
+
+    <!-- Ad Slot: In-Content Responsive -->
+    <div class="ad-container">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="{{ADSENSE_CLIENT_ID}}"
+           data-ad-slot="{{AD_SLOT_ID}}"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    </div>
+
+    <section>
+      <h2>About Image Cropping</h2>
+      <p>Crop images to your desired dimensions using our browser-based tool.</p>
+    </section>
+
+    <section class="faq">
+      <h2>FAQ</h2>
+      <details>
+        <summary>Can I crop to specific ratios?</summary>
+        <p>Yes, choose from preset ratios like 1:1, 4:3, or 16:9, or crop freeform.</p>
+      </details>
+    </section>
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": [{
+        "@type": "Question",
+        "name": "Can I crop to specific ratios?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Yes, choose from preset ratios like 1:1, 4:3, or 16:9, or crop freeform."
+        }
+      }]
+    }
+    </script>
+  </main>
+
+  <footer>
+    <ul>
+      <li><a href="/about.html">About</a></li>
+      <li><a href="/privacy.html">Privacy</a></li>
+      <li><a href="/terms.html">Terms</a></li>
+      <li><a href="/contact.html">Contact</a></li>
+    </ul>
+    <p>&copy; 2025 {{BRAND_NAME}}. All rights reserved.</p>
+  </footer>
+
+  <script>
+    setupMobileMenu();
+    let file, img, startX, startY, endX, endY;
+    const dropZone = document.querySelector('.drop-zone');
+    const fileInput = document.getElementById('fileInput');
+    const canvas = document.getElementById('crop-canvas');
+    const ctx = canvas.getContext('2d');
+    const previews = document.getElementById('previews');
+    const progress = document.getElementById('progress');
+    const cropBtn = document.getElementById('crop');
+    const aspectSelect = document.getElementById('aspect');
+
+    dropZone.addEventListener('click', () => fileInput.click());
+    dropZone.addEventListener('dragover', (e) => e.preventDefault());
+    dropZone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      handleFile(e.dataTransfer.files[0]);
+    });
+    fileInput.addEventListener('change', (e) => handleFile(e.target.files[0]));
+
+    async function handleFile(newFile) {
+      if (!newFile || !newFile.type.startsWith('image/')) {
+        progress.textContent = 'Please select an image file.';
+        return;
+      }
+      file = newFile;
+      img = await loadImage(file);
+      canvas.width = img.width;
+      canvas.height = img.height;
+      ctx.drawImage(img, 0, 0);
+      cropBtn.disabled = false;
+      progress.textContent = '';
+    }
+
+    let isDragging = false;
+    canvas.addEventListener('mousedown', (e) => {
+      isDragging = true;
+      startX = e.offsetX;
+      startY = e.offsetY;
+    });
+    canvas.addEventListener('mousemove', (e) => {
+      if (!isDragging) return;
+      endX = e.offsetX;
+      endY = e.offsetY;
+      redrawCanvas();
+    });
+    canvas.addEventListener('mouseup', () => {
+      isDragging = false;
+    });
+
+    aspectSelect.addEventListener('change', () => {
+      if (img) redrawCanvas();
+    });
+
+    function redrawCanvas() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(img, 0, 0);
+      if (startX !== undefined && endX !== undefined) {
+        const aspect = aspectSelect.value;
+        let width = endX - startX;
+        let height = endY - startY;
+        if (aspect !== 'free') {
+          const [w, h] = aspect.split(':').map(Number);
+          height = width * h / w;
+          endY = startY + height;
+        }
+        ctx.strokeStyle = 'red';
+        ctx.strokeRect(startX, startY, width, height);
+      }
+    }
+
+    cropBtn.addEventListener('click', async () => {
+      try {
+        progress.textContent = 'Cropping...';
+        const cropCanvas = document.createElement('canvas');
+        cropCanvas.width = Math.abs(endX - startX);
+        cropCanvas.height = Math.abs(endY - startY);
+        cropCanvas.getContext('2d').drawImage(
+          img,
+          Math.min(startX, endX), Math.min(startY, endY),
+          cropCanvas.width, cropCanvas.height,
+          0, 0, cropCanvas.width, cropCanvas.height
+        );
+        const blob = await cropCanvas.toBlob((b) => b, file.type, 1);
+
+        // Update preview
+        const preview = document.createElement('div');
+        preview.className = 'preview';
+        const imgEl = document.createElement('img');
+        imgEl.src = URL.createObjectURL(blob);
+        imgEl.alt = `Cropped ${file.name}`;
+        imgEl.loading = 'lazy';
+        const size = document.createElement('p');
+        size.textContent = `Cropped: ${(blob.size / 1024).toFixed(2)} KB`;
+        preview.appendChild(imgEl);
+        preview.appendChild(size);
+        previews.appendChild(preview);
+
+        // Auto-download
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = file.name.replace(/\.\w+$/, `-cropped.${file.type.split('/')[1]}`);
+        a.click();
+        URL.revokeObjectURL(a.href);
+
+        progress.textContent = 'Cropped successfully!';
+      } catch (err) {
+        progress.textContent = `Error: ${err.message}`;
+      }
+    });
+  </script>
+</body>
+</html>
+
+/tools/pdf-merger.html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Merge multiple PDFs client-side with {{BRAND_NAME}}.">
+  <title>PDF Merger - {{BRAND_NAME}}</title>
+  <link rel="canonical" href="{{DOMAIN}}/tools/pdf-merger.html">
+  <meta property="og:title" content="PDF Merger - {{BRAND_NAME}}">
+  <meta property="og:description" content="Combine multiple PDFs into one file client-side.">
+  <meta property="og:url" content="{{DOMAIN}}/tools/pdf-merger.html">
+  <meta property="og:image" content="{{DOMAIN}}/public/icons/icon-512x512.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://pagead2.googlesyndication.com https://www.googletagmanager.com; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' https://www.google-analytics.com;">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+  <meta name="robots" content="index, follow">
+  <link rel="stylesheet" href="/styles/global.css">
+  <link rel="manifest" href="/public/manifest.json">
+  <link rel="icon" href="/public/favicon.ico">
+  <script async src="https://www.googletagmanager.com/gtag/js?id={{GA_MEASUREMENT_ID}}"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', '{{GA_MEASUREMENT_ID}}');
+  </script>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client={{ADSENSE_CLIENT_ID}}" crossorigin="anonymous"></script>
+  <script src="/scripts/utils.js" defer></script>
+  <script src="/scripts/pdf-lib.min.js" defer></script>
+</head>
+<body>
+  <header>
+    <nav>
+      <div class="logo">{{BRAND_NAME}}</div>
+      <ul>
+        <li><a href="/">Home</a></li>
+        <li><a href="/tools/image-compressor.html">Compressor</a></li>
+        <li><a href="/tools/image-resizer.html">Resizer</a></li>
+        <li><a href="/tools/image-converter.html">Converter</a></li>
+        <li><a href="/tools/image-cropper.html">Cropper</a></li>
+        <li><a href="/about.html">About</a></li>
+        <li><a href="/contact.html">Contact</a></li>
+      </ul>
+      <button onclick="toggleTheme()" aria-label="Toggle light/dark theme">Toggle Theme</button>
+      <button class="hamburger" aria-label="Menu">☰</button>
+    </nav>
+  </header>
+
+  <!-- Ad Slot: Header Responsive -->
+  <div class="ad-container">
+    <ins class="adsbygoogle"
+         style="display:block"
+         data-ad-client="{{ADSENSE_CLIENT_ID}}"
+         data-ad-slot="{{AD_SLOT_ID}}"
+         data-ad-format="auto"
+         data-full-width-responsive="true"></ins>
+    <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+  </div>
+
+  <main>
+    <h1>PDF Merger</h1>
+    <p>Merge multiple PDFs client-side into a single file.</p>
+
+    <div class="drop-zone" tabindex="0" aria-label="Drop files here">
+      Drag & drop PDFs or click to select
+    </div>
+    <input type="file" multiple accept="application/pdf" style="display:none;" id="fileInput">
+
+    <div id="previews" role="region" aria-live="polite"></div>
+    <div id="progress" aria-live="polite"></div>
+
+    <button id="merge" disabled>Merge</button>
+
+    <!-- Ad Slot: In-Content Responsive -->
+    <div class="ad-container">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="{{ADSENSE_CLIENT_ID}}"
+           data-ad-slot="{{AD_SLOT_ID}}"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    </div>
+
+    <section>
+      <h2>About PDF Merging</h2>
+      <p>Combine multiple PDF files into one using client-side processing with PDF.js.</p>
+    </section>
+
+    <section class="faq">
+      <h2>FAQ</h2>
+      <details>
+        <summary>Can I reorder PDFs before merging?</summary>
+        <p>Currently, PDFs are merged in the order they are uploaded. Reordering support may be added in the future.</p>
+      </details>
+    </section>
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": [{
+        "@type": "Question",
+        "name": "Can I reorder PDFs before merging?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Currently, PDFs are merged in the order they are uploaded. Reordering support may be added in the future."
+        }
+      }]
+    }
+    </script>
+  </main>
+
+  <footer>
+    <ul>
+      <li><a href="/about.html">About</a></li>
+      <li><a href="/privacy.html">Privacy</a></li>
+      <li><a href="/terms.html">Terms</a></li>
+      <li><a href="/contact.html">Contact</a></li>
+    </ul>
+    <p>&copy; 2025 {{BRAND_NAME}}. All rights reserved.</p>
+  </footer>
+
+  <script>
+    setupMobileMenu();
+    const files = [];
+    const dropZone = document.querySelector('.drop-zone');
+    const fileInput = document.getElementById('fileInput
